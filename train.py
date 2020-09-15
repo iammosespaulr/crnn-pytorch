@@ -82,6 +82,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
         loss_mean = []
         iterator = tqdm(data_loader)
         iter_count = 0
+        print(iterator)
         for sample in iterator:
             # for multi-gpu support
             if sample["img"].size(0) % len(gpu.split(',')) != 0:
