@@ -17,9 +17,9 @@ from torch import optim
 from torch.autograd import Variable
 from torch import Tensor
 from torch.utils.data import DataLoader
-from warpctc_pytorch import CTCLoss
 
 from test import test
+
 
 @click.command()
 @click.option('--data-path', type=str, default=None, help='Path to dataset')
@@ -48,14 +48,15 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
         Resize(size=(input_size[0], input_size[1]))
     ])
     if data_path is not None:
-        data = TextDataset(data_path=data_path, mode="train", transform=transform)
+        data = TextDataset(data_path=data_path,
+                           mode="train", transform=transform)
     else:
         data = TestDataset(transform=transform, abc=abc)
     seq_proj = [int(x) for x in seq_proj.split('x')]
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda)
-    optimizer = optim.Adam(net.parameters(), lr = base_lr, weight_decay=0.0001)
+    optimizer = optim.Adam(net.parameters(), lr=base_lr, weight_decay=0.0001)
     lr_scheduler = StepLR(optimizer, step_size=step_size, max_iter=max_iter)
-    loss_function = CTCLoss()
+    loss_function = nn.CTCLoss()
 
     acc_best = 0
     epoch_count = 0
@@ -64,16 +65,20 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             print("Test phase")
             data.set_mode("test")
             net = net.eval()
-            acc, avg_ed = test(net, data, data.get_abc(), cuda, visualize=False)
+            acc, avg_ed = test(net, data, data.get_abc(),
+                               cuda, visualize=False)
             net = net.train()
             data.set_mode("train")
             if acc > acc_best:
                 if output_dir is not None:
-                    torch.save(net.state_dict(), os.path.join(output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_best"))
+                    torch.save(net.state_dict(), os.path.join(
+                        output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_best"))
                 acc_best = acc
-            print("acc: {}\tacc_best: {}; avg_ed: {}".format(acc, acc_best, avg_ed))
+            print("acc: {}\tacc_best: {}; avg_ed: {}".format(
+                acc, acc_best, avg_ed))
 
-        data_loader = DataLoader(data, batch_size=batch_size, num_workers=1, shuffle=True, collate_fn=text_collate)
+        data_loader = DataLoader(
+            data, batch_size=batch_size, num_workers=1, shuffle=True, collate_fn=text_collate)
         loss_mean = []
         iterator = tqdm(data_loader)
         iter_count = 0
@@ -89,20 +94,24 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
                 imgs = imgs.cuda()
             preds = net(imgs).cpu()
             pred_lens = Variable(Tensor([preds.size(0)] * batch_size).int())
-            loss = loss_function(preds, labels, pred_lens, label_lens) / batch_size
+            loss = loss_function(preds, labels, pred_lens,
+                                 label_lens) / batch_size
             loss.backward()
             nn.utils.clip_grad_norm(net.parameters(), 10.0)
             loss_mean.append(loss.data[0])
-            status = "epoch: {}; iter: {}; lr: {}; loss_mean: {}; loss: {}".format(epoch_count, lr_scheduler.last_iter, lr_scheduler.get_lr(), np.mean(loss_mean), loss.data[0])
+            status = "epoch: {}; iter: {}; lr: {}; loss_mean: {}; loss: {}".format(
+                epoch_count, lr_scheduler.last_iter, lr_scheduler.get_lr(), np.mean(loss_mean), loss.data[0])
             iterator.set_description(status)
             optimizer.step()
             lr_scheduler.step()
             iter_count += 1
         if output_dir is not None:
-            torch.save(net.state_dict(), os.path.join(output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_last"))
+            torch.save(net.state_dict(), os.path.join(
+                output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_last"))
         epoch_count += 1
 
     return
+
 
 if __name__ == '__main__':
     main()
