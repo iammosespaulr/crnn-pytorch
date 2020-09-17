@@ -18,13 +18,16 @@ from torchvision.transforms import Compose
 
 import editdistance
 
+
 def test(net, data, abc, cuda, visualize, batch_size=256):
-    data_loader = DataLoader(data, batch_size=batch_size, num_workers=4, shuffle=False, collate_fn=text_collate)
+    data_loader = DataLoader(data, batch_size=batch_size,
+                             num_workers=4, shuffle=False, collate_fn=text_collate)
 
     count = 0
     tp = 0
     avg_ed = 0
     iterator = tqdm(data_loader)
+    print(list(iterator))
     for sample in iterator:
         imgs = Variable(sample["img"])
         if cuda:
@@ -45,7 +48,8 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
             if visualize:
                 status = "pred: {}; gt: {}".format(out[i], gts)
                 iterator.set_description(status)
-                img = imgs[i].permute(1, 2, 0).cpu().data.numpy().astype(np.uint8)
+                img = imgs[i].permute(1, 2, 0).cpu(
+                ).data.numpy().astype(np.uint8)
                 cv2.imshow("img", img)
                 key = chr(cv2.waitKey() & 255)
                 if key == 'q':
@@ -53,11 +57,13 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
         if key == 'q':
             break
         if not visualize:
-            iterator.set_description("acc: {0:.4f}; avg_ed: {0:.4f}".format(tp / count, avg_ed / count))
+            iterator.set_description(
+                "acc: {0:.4f}; avg_ed: {0:.4f}".format(tp / count, avg_ed / count))
 
     acc = tp / count
     avg_ed = avg_ed / count
     return acc, avg_ed
+
 
 @click.command()
 @click.option('--data-path', type=str, default=None, help='Path to dataset')
@@ -78,7 +84,8 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
         Resize(size=(input_size[0], input_size[1]))
     ])
     if data_path is not None:
-        data = TextDataset(data_path=data_path, mode="test", transform=transform)
+        data = TextDataset(data_path=data_path,
+                           mode="test", transform=transform)
     else:
         data = TestDataset(transform=transform, abc=abc)
     seq_proj = [int(x) for x in seq_proj.split('x')]
@@ -86,6 +93,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, gpu, visualize
     acc, avg_ed = test(net, data, data.get_abc(), cuda, visualize)
     print("Accuracy: {}".format(acc))
     print("Edit distance: {}".format(avg_ed))
+
 
 if __name__ == '__main__':
     main()

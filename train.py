@@ -17,8 +17,6 @@ from torch import optim
 from torch.autograd import Variable
 from torch import Tensor
 from torch.utils.data import DataLoader
-from warpctc_pytorch import CTCLoss
-
 from test import test
 
 
@@ -36,10 +34,13 @@ from test import test
 @click.option('--output-dir', type=str, default=None, help='Path for snapshot')
 @click.option('--test-epoch', type=int, default=None, help='Test epoch')
 @click.option('--test-init', type=bool, default=False, help='Test initialization')
-@click.option('--gpu', type=str, default='0', help='List of GPUs for parallel training, e.g. 0,1,2,3')
+@click.option('--gpu', type=str, default='', help='List of GPUs for parallel training, e.g. 0,1,2,3')
 def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_size, max_iter, batch_size, output_dir, test_epoch, test_init, gpu):
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu
-    cuda = True if gpu is not '' else False
+    if not gpu == '':
+        cuda = True
+    else:
+        cuda = False
 
     input_size = [int(x) for x in input_size.split('x')]
     transform = Compose([
@@ -54,10 +55,14 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
     else:
         data = TestDataset(transform=transform, abc=abc)
     seq_proj = [int(x) for x in seq_proj.split('x')]
+    # print(data_path)
+    # print(data[0])
+    # print(data.get_abc())
+    # exit()
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda)
     optimizer = optim.Adam(net.parameters(), lr=base_lr, weight_decay=0.0001)
     lr_scheduler = StepLR(optimizer, step_size=step_size, max_iter=max_iter)
-    loss_function = CTCLoss()
+    loss_function = nn.CTCLoss()
 
     acc_best = 0
     epoch_count = 0

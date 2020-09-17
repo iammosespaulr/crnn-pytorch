@@ -5,6 +5,7 @@ from torch import nn
 
 from .crnn import CRNN
 
+
 def load_weights(target, source_state):
     new_dict = OrderedDict()
     for k, v in target.state_dict().items():
@@ -13,6 +14,7 @@ def load_weights(target, source_state):
         else:
             new_dict[k] = v
     target.load_state_dict(new_dict)
+
 
 def load_model(abc, seq_proj=[0, 0], backend='resnet18', snapshot=None, cuda=True):
     net = CRNN(abc=abc, seq_proj=seq_proj, backend=backend)

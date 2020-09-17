@@ -7,7 +7,7 @@ class StepLR(object):
         self.max_iter = max_iter
         self.step_size = step_size
         self.last_iter = -1
-        self.base_lrs = list(map(lambda group: group['lr'], optimizer.param_groups))
+        self.base_lrs = list([group['lr'] for group in optimizer.param_groups])
 
     def get_lr(self):
         return self.optimizer.param_groups[0]['lr']
