@@ -116,7 +116,8 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             torch.save(net.state_dict(), os.path.join(
                 output_dir, "crnn_" + backend + "_" + "_last"))
         epoch_count += 1
-
+        if epoch_count == 50:
+            break
     return
 
 

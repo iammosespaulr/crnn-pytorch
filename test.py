@@ -27,7 +27,6 @@ def test(net, data, abc, cuda, visualize, batch_size=256):
     tp = 0
     avg_ed = 0
     iterator = tqdm(data_loader)
-    print(list(iterator))
     for sample in iterator:
         imgs = Variable(sample["img"])
         if cuda:
