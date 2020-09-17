@@ -18,6 +18,7 @@ from torch.autograd import Variable
 from torch import Tensor
 from torch.utils.data import DataLoader
 from test import test
+from warpctc_pytorch import CTCLoss
 
 
 @click.command()
@@ -62,7 +63,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
     net = load_model(data.get_abc(), seq_proj, backend, snapshot, cuda)
     optimizer = optim.Adam(net.parameters(), lr=base_lr, weight_decay=0.0001)
     lr_scheduler = StepLR(optimizer, step_size=step_size, max_iter=max_iter)
-    loss_function = nn.CTCLoss()
+    loss_function = CTCLoss()
 
     acc_best = 0
     epoch_count = 0
