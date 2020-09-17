@@ -79,7 +79,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             if acc > acc_best:
                 if output_dir is not None:
                     torch.save(net.state_dict(), os.path.join(
-                        output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_best"))
+                        output_dir, "crnn_" + backend + "_" + "_best"))
                 acc_best = acc
             print("acc: {}\tacc_best: {}; avg_ed: {}".format(
                 acc, acc_best, avg_ed))
@@ -115,7 +115,7 @@ def main(data_path, abc, seq_proj, backend, snapshot, input_size, base_lr, step_
             iter_count += 1
         if output_dir is not None:
             torch.save(net.state_dict(), os.path.join(
-                output_dir, "crnn_" + backend + "_" + str(data.get_abc()) + "_last"))
+                output_dir, "crnn_" + backend + "_" + "_last"))
         epoch_count += 1
 
     return
